@@ -104,7 +104,8 @@
   <div class="star-big glow">✦</div>
   <h2 id="lock-title">our little sky</h2>
   <p id="lock-hint">enter the passcode</p>
-  <input id="lock-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12">
+  <input id="lock-input" type="password" autocomplete="off" maxlength="12">
+  <button id="lock-btn" style="margin-top:2px">unlock ✦</button>
   <div class="err" id="lock-err"></div>
 </div>
 <header>
@@ -238,8 +239,7 @@ function initLock(){
     document.getElementById("lock-hint").textContent = "first time here — choose a little passcode for our sky (4+ characters)";
   }
   let firstEntry = null;
-  input.addEventListener("keydown", async e=>{
-    if(e.key!=="Enter") return;
+  async function submit(){
     const val = input.value;
     if(val.length<4){ err.textContent="a little longer, love (4+)"; return; }
     const h = await hashCode(val);
@@ -259,7 +259,9 @@ function initLock(){
       err.textContent="didn't match — let's start over";
       document.getElementById("lock-hint").textContent = "choose a little passcode (4+ characters)";
     }
-  });
+  }
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter") submit(); });
+  document.getElementById("lock-btn").addEventListener("click", submit);
   setTimeout(()=>input.focus(), 100);
 }
 initLock();
