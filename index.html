@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Patty Star Astro</title>
+<meta name="description" content="A cozy, private birth chart & daily horoscope. Your data never leaves your device.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f6ecd9">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --parchment:#f6ecd9; --parchment-deep:#efe0c4; --ink:#4a3728; --ink-soft:#7a6450;
+    --accent:#b5713f; --accent-soft:#d9a05b; --rose:#c98a7d; --card:#fdf6e8;
+    --shadow:0 4px 18px rgba(122,90,54,.14); --radius:18px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:Georgia,'Times New Roman',serif; background:var(--parchment); color:var(--ink);
+    min-height:100vh; padding-bottom:90px;
+    background-image:radial-gradient(circle at 20% 10%, rgba(217,160,91,.12), transparent 40%),
+                     radial-gradient(circle at 85% 25%, rgba(201,138,125,.10), transparent 45%);
+  }
+  header{padding:26px 20px 10px; text-align:center;}
+  header h1{font-size:1.55rem; letter-spacing:.5px; font-weight:normal;}
+  header h1 .star{color:var(--accent);}
+  header p{color:var(--ink-soft); font-size:.85rem; margin-top:4px; font-style:italic;}
+  .privacy-note{font-size:.72rem; color:var(--ink-soft); margin-top:6px;}
+  .privacy-note b{color:var(--accent);}
+  main{max-width:680px; margin:0 auto; padding:12px 16px;}
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:16px; border:1px solid rgba(181,113,63,.15);}
+  .card h2{font-size:1.05rem; margin-bottom:12px; color:var(--accent); font-weight:normal; letter-spacing:.4px;}
+  .card h3{font-size:.95rem; margin:14px 0 6px; color:var(--ink);}
+  label{display:block; font-size:.8rem; color:var(--ink-soft); margin:10px 0 4px;}
+  input,select{
+    width:100%; padding:10px 12px; border:1px solid rgba(181,113,63,.35); border-radius:10px;
+    background:#fffdf7; font-family:inherit; font-size:.95rem; color:var(--ink);
+  }
+  input:focus,select:focus{outline:2px solid var(--accent-soft);}
+  .row{display:flex; gap:10px;} .row>div{flex:1;}
+  button{
+    font-family:inherit; border:none; border-radius:12px; padding:12px 18px; font-size:.95rem;
+    background:var(--accent); color:#fff8ec; cursor:pointer; margin-top:14px; box-shadow:var(--shadow);
+  }
+  button.secondary{background:transparent; color:var(--accent); border:1px solid var(--accent); box-shadow:none;}
+  button:active{transform:scale(.98);}
+  nav{
+    position:fixed; bottom:0; left:0; right:0; display:flex; background:var(--card);
+    border-top:1px solid rgba(181,113,63,.2); padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -4px 16px rgba(122,90,54,.10); z-index:10;
+  }
+  nav button{
+    flex:1; margin:0; border-radius:0; background:transparent; color:var(--ink-soft);
+    padding:13px 4px 11px; font-size:.8rem; box-shadow:none; display:flex; flex-direction:column; gap:2px; align-items:center;
+  }
+  nav button .ic{font-size:1.15rem;}
+  nav button.active{color:var(--accent); font-weight:bold;}
+  .view{display:none;} .view.active{display:block;}
+  .profile-chip{
+    display:flex; justify-content:space-between; align-items:center; background:var(--parchment-deep);
+    border-radius:12px; padding:12px 14px; margin-bottom:10px;
+  }
+  .profile-chip .meta{font-size:.78rem; color:var(--ink-soft);}
+  .profile-chip .actions button{margin:0 0 0 6px; padding:6px 10px; font-size:.75rem;}
+  #wheel{display:flex; justify-content:center;}
+  #wheel svg{max-width:100%; height:auto;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem;}
+  td,th{padding:7px 6px; border-bottom:1px dashed rgba(181,113,63,.25); text-align:left;}
+  th{color:var(--ink-soft); font-weight:normal; font-size:.75rem;}
+  .retro{color:var(--rose); font-size:.75rem;}
+  .big3{display:flex; gap:10px; margin-bottom:14px;}
+  .big3 div{flex:1; background:var(--parchment-deep); border-radius:12px; padding:10px; text-align:center;}
+  .big3 .k{font-size:.7rem; color:var(--ink-soft);} .big3 .v{font-size:.95rem; margin-top:2px;}
+  .reading p{line-height:1.65; margin-bottom:12px; font-size:.95rem;}
+  .reading .aspect-tag{
+    display:inline-block; background:var(--parchment-deep); border-radius:8px; padding:2px 8px;
+    font-size:.72rem; color:var(--accent); margin-bottom:4px;
+  }
+  .score-ring{text-align:center; margin:6px 0 14px;}
+  .score-ring .num{font-size:2.2rem; color:var(--accent);}
+  .score-ring .lbl{font-size:.78rem; color:var(--ink-soft);}
+  .muted{color:var(--ink-soft); font-size:.85rem; font-style:italic;}
+  .divider{border:none; border-top:1px dashed rgba(181,113,63,.3); margin:16px 0;}
+  select.inline{margin-bottom:12px;}
+  .glow{ text-shadow:0 0 12px rgba(217,160,91,.6); }
+  #lock{
+    position:fixed; inset:0; z-index:100; background:var(--parchment);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    background-image:radial-gradient(circle at 30% 20%, rgba(217,160,91,.15), transparent 45%),
+                     radial-gradient(circle at 75% 70%, rgba(201,138,125,.12), transparent 45%);
+  }
+  #lock .star-big{font-size:3rem; color:var(--accent);}
+  #lock h2{font-weight:normal; color:var(--ink); font-size:1.2rem;}
+  #lock p{color:var(--ink-soft); font-size:.85rem; font-style:italic; max-width:260px; text-align:center;}
+  #lock input{
+    width:220px; text-align:center; font-size:1.3rem; letter-spacing:.35em;
+    padding:12px; border:1px solid rgba(181,113,63,.35); border-radius:12px; background:#fffdf7;
+  }
+  #lock .err{color:var(--rose); font-size:.8rem; height:1em; font-style:normal;}
+</style>
+</head>
+<body>
+<div id="lock" style="display:none">
+  <div class="star-big glow">✦</div>
+  <h2 id="lock-title">our little sky</h2>
+  <p id="lock-hint">enter the passcode</p>
+  <input id="lock-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12">
+  <div class="err" id="lock-err"></div>
+</div>
+<header>
+  <h1><span class="star glow">✦</span> Patty Star Astro <span class="star glow">✦</span></h1>
+  <p>a cozy little sky, just for us</p>
+  <div class="privacy-note"><b>Private by design:</b> everything stays on this device. No account, no servers, no sharing.</div>
+</header>
+
+<main>
+  <!-- PROFILES -->
+  <section id="view-profiles" class="view active">
+    <div class="card">
+      <h2>Our profiles</h2>
+      <div id="profile-list"></div>
+      <button id="btn-new-profile" class="secondary">+ Add a person</button>
+    </div>
+    <div class="card" id="profile-form-card" style="display:none">
+      <h2 id="form-title">New profile</h2>
+      <input type="hidden" id="f-id">
+      <label>Name</label>
+      <input id="f-name" placeholder="e.g. Zoe">
+      <div class="row">
+        <div><label>Birth date</label><input id="f-date" type="date"></div>
+        <div><label>Birth time</label><input id="f-time" type="time" value="12:00"></div>
+      </div>
+      <label>Birth place</label>
+      <select id="f-place"></select>
+      <div class="row" id="custom-latlng" style="display:none">
+        <div><label>Latitude</label><input id="f-lat" type="number" step="0.0001" placeholder="13.7563"></div>
+        <div><label>Longitude</label><input id="f-lng" type="number" step="0.0001" placeholder="100.5018"></div>
+      </div>
+      <div class="row">
+        <div><button id="btn-save-profile">Save</button></div>
+        <div><button class="secondary" id="btn-cancel-profile">Cancel</button></div>
+      </div>
+      <p class="muted" style="margin-top:10px">If birth time is unknown, noon is used — houses & rising sign will be approximate.</p>
+    </div>
+    <div class="card">
+      <h2>✨ Enhanced readings (optional)</h2>
+      <p class="muted" style="margin-bottom:8px">Connect your own private Cloudflare Worker to get AI-written daily & couple readings. Only anonymous aspect patterns are sent — never names, birth dates, or places. Leave blank to stay 100% offline.</p>
+      <label>Worker URL</label>
+      <input id="s-worker" placeholder="https://patty-star.yourname.workers.dev">
+      <label>Passphrase</label>
+      <input id="s-key" placeholder="the PSA_SECRET you set in the worker">
+      <button id="btn-save-settings" class="secondary">Save settings</button>
+      <span id="settings-status" class="muted" style="margin-left:10px"></span>
+    </div>
+  </section>
+
+  <!-- CHART -->
+  <section id="view-chart" class="view">
+    <div class="card">
+      <h2>Birth chart</h2>
+      <select id="chart-profile" class="inline"></select>
+      <div class="big3" id="big3"></div>
+      <div id="wheel"></div>
+      <hr class="divider">
+      <h3>Placements</h3>
+      <table id="placements"></table>
+    </div>
+  </section>
+
+  <!-- TODAY -->
+  <section id="view-today" class="view">
+    <div class="card">
+      <h2>Today's reading</h2>
+      <select id="today-profile" class="inline"></select>
+      <div id="today-reading" class="reading"></div>
+    </div>
+  </section>
+
+  <!-- US (SYNASTRY) -->
+  <section id="view-us" class="view">
+    <div class="card">
+      <h2>Us ♡</h2>
+      <div class="row">
+        <div><select id="us-a" class="inline"></select></div>
+        <div><select id="us-b" class="inline"></select></div>
+      </div>
+      <div id="us-reading" class="reading"></div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-view="profiles" class="active"><span class="ic">☾</span>Profiles</button>
+  <button data-view="chart"><span class="ic">✦</span>Chart</button>
+  <button data-view="today"><span class="ic">☀</span>Today</button>
+  <button data-view="us"><span class="ic">♡</span>Us</button>
+</nav>
+
+<script src="libs.js"></script>
+<script>
+/* ============ Data & helpers ============ */
+const PLACES = [
+  {name:"Bangkok, Thailand", lat:13.7563, lng:100.5018},
+  {name:"Chiang Mai, Thailand", lat:18.7883, lng:98.9853},
+  {name:"Phuket, Thailand", lat:7.8804, lng:98.3923},
+  {name:"Khon Kaen, Thailand", lat:16.4419, lng:102.8360},
+  {name:"Singapore", lat:1.3521, lng:103.8198},
+  {name:"Hong Kong", lat:22.3193, lng:114.1694},
+  {name:"Tokyo, Japan", lat:35.6762, lng:139.6503},
+  {name:"Seoul, South Korea", lat:37.5665, lng:126.9780},
+  {name:"London, UK", lat:51.5074, lng:-0.1278},
+  {name:"Paris, France", lat:48.8566, lng:2.3522},
+  {name:"New York, USA", lat:40.7128, lng:-74.0060},
+  {name:"Los Angeles, USA", lat:34.0522, lng:-118.2437},
+  {name:"Sydney, Australia", lat:-33.8688, lng:151.2093},
+  {name:"Custom (enter lat/lng)", lat:null, lng:null},
+];
+const {Origin, Horoscope, Chart} = window.AstroLibs;
+
+/* ============ Tiny lock screen ============ */
+async function hashCode(str){
+  try{
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("psa~"+str));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }catch(e){ // non-secure context fallback
+    let h=0; for(const c of "psa~"+str) h=(h*31 + c.charCodeAt(0))>>>0; return "f"+h;
+  }
+}
+function initLock(){
+  const saved = localStorage.getItem("psa_lock");
+  const lock = document.getElementById("lock");
+  const input = document.getElementById("lock-input");
+  const err = document.getElementById("lock-err");
+  if(sessionStorage.getItem("psa_unlocked")==="1") return; // already unlocked this session
+  lock.style.display = "flex";
+  if(!saved){
+    document.getElementById("lock-title").textContent = "set a passcode";
+    document.getElementById("lock-hint").textContent = "first time here — choose a little passcode for our sky (4+ characters)";
+  }
+  let firstEntry = null;
+  input.addEventListener("keydown", async e=>{
+    if(e.key!=="Enter") return;
+    const val = input.value;
+    if(val.length<4){ err.textContent="a little longer, love (4+)"; return; }
+    const h = await hashCode(val);
+    if(saved){
+      if(h===saved){ sessionStorage.setItem("psa_unlocked","1"); lock.style.display="none"; }
+      else { err.textContent="that's not it — try again"; input.value=""; }
+    } else if(firstEntry===null){
+      firstEntry = h;
+      input.value=""; err.textContent="";
+      document.getElementById("lock-hint").textContent = "once more to confirm";
+    } else if(h===firstEntry){
+      localStorage.setItem("psa_lock", h);
+      sessionStorage.setItem("psa_unlocked","1");
+      lock.style.display="none";
+    } else {
+      firstEntry=null; input.value="";
+      err.textContent="didn't match — let's start over";
+      document.getElementById("lock-hint").textContent = "choose a little passcode (4+ characters)";
+    }
+  });
+  setTimeout(()=>input.focus(), 100);
+}
+initLock();
+const CORE = ["sun","moon","mercury","venus","mars","jupiter","saturn","uranus","neptune","pluto"];
+const CHART_NAMES = {sun:"Sun",moon:"Moon",mercury:"Mercury",venus:"Venus",mars:"Mars",jupiter:"Jupiter",saturn:"Saturn",uranus:"Uranus",neptune:"Neptune",pluto:"Pluto",chiron:"Chiron",northnode:"NNode",lilith:"Lilith"};
+const PLANET_GLYPH = {sun:"☉",moon:"☽",mercury:"☿",venus:"♀",mars:"♂",jupiter:"♃",saturn:"♄",uranus:"♅",neptune:"♆",pluto:"♇"};
+const ASPECTS = [
+  {key:"conjunction", angle:0, orb:6, word:"meets", tone:"blend"},
+  {key:"sextile", angle:60, orb:4, word:"encourages", tone:"ease"},
+  {key:"square", angle:90, orb:5, word:"challenges", tone:"friction"},
+  {key:"trine", angle:120, orb:5, word:"flows with", tone:"ease"},
+  {key:"opposition", angle:180, orb:6, word:"faces", tone:"tension"},
+];
+const PLANET_THEME = {
+  sun:"your sense of self", moon:"your feelings and comfort", mercury:"your thoughts and words",
+  venus:"love and what you enjoy", mars:"your energy and drive", jupiter:"growth and luck",
+  saturn:"duty and structure", uranus:"change and surprises", neptune:"dreams and intuition", pluto:"deep transformation"
+};
+const SIGN_STYLE = {
+  Aries:"bold and direct", Taurus:"steady and sensual", Gemini:"curious and quick",
+  Cancer:"tender and protective", Leo:"warm and expressive", Virgo:"careful and thoughtful",
+  Libra:"graceful and fair-minded", Scorpio:"intense and devoted", Sagittarius:"adventurous and honest",
+  Capricorn:"patient and determined", Aquarius:"original and independent", Pisces:"dreamy and compassionate"
+};
+const SIGN_ELEMENT = {Aries:"Fire",Leo:"Fire",Sagittarius:"Fire",Taurus:"Earth",Virgo:"Earth",Capricorn:"Earth",Gemini:"Air",Libra:"Air",Aquarius:"Air",Cancer:"Water",Scorpio:"Water",Pisces:"Water"};
+const HOUSE_THEME = {1:"how you show up",2:"money and self-worth",3:"communication and daily connections",4:"home and roots",5:"joy, romance and play",6:"routines and health",7:"partnership",8:"intimacy and shared depths",9:"beliefs and far horizons",10:"career and reputation",11:"friends and community",12:"rest and the inner world"};
+
+const store = {
+  get profiles(){ try{ return JSON.parse(localStorage.getItem("psa_profiles")||"[]"); }catch(e){ return []; } },
+  set profiles(v){ localStorage.setItem("psa_profiles", JSON.stringify(v)); },
+  get settings(){ try{ return JSON.parse(localStorage.getItem("psa_settings")||"{}"); }catch(e){ return {}; } },
+  set settings(v){ localStorage.setItem("psa_settings", JSON.stringify(v)); }
+};
+
+/* Enhanced readings: sends ONLY anonymized aspect patterns (no names/dates/places). */
+async function fetchEnhanced(patterns, kind){
+  const s = store.settings;
+  if(!s.worker || !s.key || !navigator.onLine) return null;
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 12000);
+    const res = await fetch(s.worker, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "X-PSA-Key": s.key },
+      body: JSON.stringify({patterns, kind}),
+      signal: ctrl.signal
+    });
+    clearTimeout(t);
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.reading || null;
+  }catch(e){ return null; }
+}
+
+function makeHoroscope(p, dateObj){
+  const d = dateObj || new Date(p.date + "T" + (p.time||"12:00"));
+  let y,mo,da,h,mi;
+  if(dateObj){ y=d.getFullYear(); mo=d.getMonth(); da=d.getDate(); h=d.getHours(); mi=d.getMinutes(); }
+  else {
+    const [yy,mm,dd] = p.date.split("-").map(Number);
+    const [hh,mn] = (p.time||"12:00").split(":").map(Number);
+    y=yy; mo=mm-1; da=dd; h=hh; mi=mn;
+  }
+  const origin = new Origin({year:y, month:mo, date:da, hour:h, minute:mi, latitude:p.lat, longitude:p.lng});
+  return new Horoscope({origin, houseSystem:"placidus", zodiac:"tropical",
+    aspectPoints:["bodies","points","angles"], aspectWithPoints:["bodies","points","angles"],
+    aspectTypes:["major"], language:"en"});
+}
+function bodies(h){ const out={}; h.CelestialBodies.all.forEach(b=>{ out[b.key]=b; }); return out; }
+function degDiff(a,b){ const d=Math.abs(a-b)%360; return d>180 ? 360-d : d; }
+function findAspect(d1,d2){
+  const diff = degDiff(d1,d2);
+  for(const a of ASPECTS){ const orb=Math.abs(diff-a.angle); if(orb<=a.orb) return {...a, orb}; }
+  return null;
+}
+function seededPick(arr, seedStr){
+  let s=0; for(const c of seedStr) s=(s*31 + c.charCodeAt(0))>>>0;
+  return arr[s % arr.length];
+}
+function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
+
+/* ============ Profiles UI ============ */
+const $ = id => document.getElementById(id);
+function renderPlaces(){
+  $("f-place").innerHTML = PLACES.map((p,i)=>`<option value="${i}">${p.name}</option>`).join("");
+}
+function renderProfiles(){
+  const ps = store.profiles;
+  $("profile-list").innerHTML = ps.length ? ps.map(p=>`
+    <div class="profile-chip">
+      <div><b>${esc(p.name)}</b><div class="meta">${p.date} · ${p.time} · ${esc(p.placeName)}</div></div>
+      <div class="actions">
+        <button class="secondary" onclick="editProfile('${p.id}')">Edit</button>
+        <button class="secondary" onclick="deleteProfile('${p.id}')">✕</button>
+      </div>
+    </div>`).join("") : `<p class="muted">No profiles yet — add you and your love ♡</p>`;
+  const opts = ps.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+  ["chart-profile","today-profile","us-a","us-b"].forEach(id=>{ $(id).innerHTML=opts; });
+  if(ps.length>1) $("us-b").selectedIndex = 1;
+}
+function editProfile(id){
+  const p = store.profiles.find(x=>x.id===id); if(!p) return;
+  $("form-title").textContent="Edit profile"; $("f-id").value=p.id; $("f-name").value=p.name;
+  $("f-date").value=p.date; $("f-time").value=p.time;
+  const idx = PLACES.findIndex(x=>x.name===p.placeName);
+  $("f-place").value = idx>=0? idx : PLACES.length-1;
+  $("custom-latlng").style.display = (idx>=0 && PLACES[idx].lat!==null) ? "none":"flex";
+  $("f-lat").value=p.lat; $("f-lng").value=p.lng;
+  $("profile-form-card").style.display="block";
+}
+function deleteProfile(id){
+  if(!confirm("Remove this profile?")) return;
+  store.profiles = store.profiles.filter(x=>x.id!==id);
+  renderProfiles(); refreshAll();
+}
+$("btn-new-profile").onclick = ()=>{
+  $("form-title").textContent="New profile"; $("f-id").value=""; $("f-name").value="";
+  $("f-date").value=""; $("f-time").value="12:00"; $("f-place").value=0;
+  $("custom-latlng").style.display="none";
+  $("profile-form-card").style.display="block";
+};
+$("btn-cancel-profile").onclick = ()=>{ $("profile-form-card").style.display="none"; };
+$("f-place").onchange = ()=>{
+  const p = PLACES[+$("f-place").value];
+  $("custom-latlng").style.display = p.lat===null ? "flex" : "none";
+};
+$("btn-save-profile").onclick = ()=>{
+  const name=$("f-name").value.trim(), date=$("f-date").value, time=$("f-time").value||"12:00";
+  if(!name||!date){ alert("Please fill name and birth date."); return; }
+  const pl = PLACES[+$("f-place").value];
+  const lat = pl.lat!==null? pl.lat : parseFloat($("f-lat").value);
+  const lng = pl.lat!==null? pl.lng : parseFloat($("f-lng").value);
+  if(isNaN(lat)||isNaN(lng)){ alert("Please enter latitude and longitude."); return; }
+  const ps = store.profiles;
+  const id = $("f-id").value || ("p"+Date.now());
+  const rec = {id, name, date, time, lat, lng, placeName: pl.lat!==null? pl.name : `Custom (${lat.toFixed(2)}, ${lng.toFixed(2)})`};
+  const i = ps.findIndex(x=>x.id===id);
+  if(i>=0) ps[i]=rec; else ps.push(rec);
+  store.profiles = ps;
+  $("profile-form-card").style.display="none";
+  renderProfiles(); refreshAll();
+};
+
+/* ============ Chart view ============ */
+const WHEEL_SETTINGS = {
+  COLOR_BACKGROUND:"transparent", POINTS_COLOR:"#4a3728", SIGNS_COLOR:"#b5713f",
+  CIRCLE_COLOR:"#7a6450", LINE_COLOR:"#c9b8a0", CUSPS_FONT_COLOR:"#7a6450",
+  SYMBOL_AXIS_FONT_COLOR:"#b5713f",
+  COLORS_SIGNS:["#c98a7d","#a98d5f","#d9a05b","#8fa3a3","#c98a7d","#a98d5f","#d9a05b","#8fa3a3","#c98a7d","#a98d5f","#d9a05b","#8fa3a3"]
+};
+function renderChart(){
+  const p = store.profiles.find(x=>x.id===$("chart-profile").value);
+  $("wheel").innerHTML=""; $("placements").innerHTML=""; $("big3").innerHTML="";
+  if(!p){ $("wheel").innerHTML='<p class="muted">Add a profile first.</p>'; return; }
+  const h = makeHoroscope(p);
+  const bs = bodies(h);
+  // big three
+  $("big3").innerHTML = `
+    <div><div class="k">☀ Sun</div><div class="v">${bs.sun.Sign.label}</div></div>
+    <div><div class="k">☽ Moon</div><div class="v">${bs.moon.Sign.label}</div></div>
+    <div><div class="k">↑ Rising</div><div class="v">${h.Ascendant.Sign.label}</div></div>`;
+  // wheel
+  const planets={};
+  h.CelestialBodies.all.forEach(b=>{ if(CHART_NAMES[b.key]) planets[CHART_NAMES[b.key]]=[b.ChartPosition.Ecliptic.DecimalDegrees]; });
+  const cusps = h.Houses.map(x=>x.ChartPosition.StartPosition.Ecliptic.DecimalDegrees);
+  const size = Math.min(640, Math.max(320, window.innerWidth-72));
+  new Chart("wheel", size, size, WHEEL_SETTINGS).radix({planets, cusps});
+  // placements table
+  let rows = `<tr><th>Planet</th><th>Sign</th><th>House</th><th></th></tr>`;
+  CORE.forEach(k=>{
+    const b=bs[k]; if(!b) return;
+    const deg = (b.ChartPosition.Ecliptic.DecimalDegrees % 30).toFixed(1);
+    rows += `<tr><td>${PLANET_GLYPH[k]} ${b.label}</td><td>${b.Sign.label} ${deg}°</td><td>${b.House? b.House.id : "—"}</td><td>${b.isRetrograde? '<span class="retro">℞ retrograde</span>':""}</td></tr>`;
+  });
+  rows += `<tr><td>↑ Ascendant</td><td>${h.Ascendant.Sign.label}</td><td>1</td><td></td></tr>`;
+  rows += `<tr><td>MC Midheaven</td><td>${h.Midheaven.Sign.label}</td><td>10</td><td></td></tr>`;
+  $("placements").innerHTML = rows;
+}
+$("chart-profile").onchange = renderChart;
+
+/* ============ Today view ============ */
+const OPENERS = [
+  "The sky has a note for you today.",
+  "Here's what today's sky is whispering.",
+  "Pour something warm — today's stars say:",
+  "A gentle look at your day, written in transit.",
+];
+const TONE_SENTENCE = {
+  blend: (t,n)=>`Today's ${t} sits right on ${n} — the two merge, making this theme loud and close to the surface. Lean in rather than away.`,
+  ease: (t,n)=>`Today's ${t} gently supports ${n}. Things in this area move with less resistance than usual — a good day to act on it.`,
+  friction: (t,n)=>`Today's ${t} rubs against ${n}. Expect a little friction here — it's not a bad omen, just a growth edge. Go slower and be kind to yourself.`,
+  tension: (t,n)=>`Today's ${t} pulls opposite ${n}. You may feel torn between two needs — balance, not choosing sides, is the lesson today.`,
+};
+function renderToday(){
+  const p = store.profiles.find(x=>x.id===$("today-profile").value);
+  const el = $("today-reading");
+  if(!p){ el.innerHTML='<p class="muted">Add a profile first.</p>'; return; }
+  const natal = bodies(makeHoroscope(p));
+  const now = new Date();
+  const transit = bodies(makeHoroscope(p, now));
+  // find transit-to-natal aspects
+  const hits=[];
+  const T_PLANETS=["sun","moon","mercury","venus","mars","jupiter","saturn"];
+  T_PLANETS.forEach(tk=>{ CORE.forEach(nk=>{
+    const a = findAspect(transit[tk].ChartPosition.Ecliptic.DecimalDegrees, natal[nk].ChartPosition.Ecliptic.DecimalDegrees);
+    if(a) hits.push({tk,nk,a});
+  });});
+  hits.sort((x,y)=>x.a.orb-y.a.orb);
+  const top = hits.slice(0,3);
+  const dstr = now.toISOString().slice(0,10);
+  const moonSign = transit.moon.Sign.label;
+  let html = `<p class="muted">${now.toDateString()} · Moon in ${moonSign}</p>`;
+  html += `<p>${seededPick(OPENERS, dstr+p.name)}</p>`;
+  html += `<p>The Moon drifts through <b>${moonSign}</b> today, giving the day a ${SIGN_STYLE[moonSign]} mood.</p>`;
+  if(!top.length){
+    html += `<p>No exact aspects touch your chart today — a quiet sky. Quiet days are for tending what you already have.</p>`;
+  }
+  top.forEach(({tk,nk,a})=>{
+    html += `<p><span class="aspect-tag">${PLANET_GLYPH[tk]} ${a.key} ${PLANET_GLYPH[nk]} · orb ${a.a ? "" : ""}${a.orb.toFixed(1)}°</span><br>` +
+      TONE_SENTENCE[a.tone](PLANET_THEME[tk], PLANET_THEME[nk].replace("your","your natal")) + `</p>`;
+  });
+  html += `<p class="muted">Written from real transits to your chart — computed entirely on this device.</p>`;
+  el.innerHTML = html;
+  // enhanced reading (optional, anonymized patterns only)
+  if(top.length && store.settings.worker){
+    const patterns = `Moon in ${moonSign}. ` + top.map(({tk,nk,a}) =>
+      `Transit ${tk} ${a.key} natal ${nk} (orb ${a.orb.toFixed(1)})`).join(". ");
+    const slot = document.createElement("div");
+    slot.innerHTML = `<p class="muted">✨ writing your enhanced reading…</p>`;
+    el.appendChild(slot);
+    fetchEnhanced(patterns, "daily").then(r=>{
+      slot.innerHTML = r
+        ? `<hr class="divider"><p><span class="aspect-tag">✨ enhanced</span></p>` +
+          r.split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join("")
+        : "";
+    });
+  }
+}
+$("today-profile").onchange = renderToday;
+
+/* ============ Synastry (Us) ============ */
+const TONE_COUPLE = {
+  blend: (pa,pb,ta,tb)=>`${pa}'s ${ta} sits right on ${pb}'s ${tb} — you feel fused here, for better and for closer. This is one of the places you recognise each other instantly.`,
+  ease: (pa,pb,ta,tb)=>`${pa}'s ${ta} flows easily with ${pb}'s ${tb}. This part of the relationship tends to just work without effort — protect it, don't take it for granted.`,
+  friction: (pa,pb,ta,tb)=>`${pa}'s ${ta} squares ${pb}'s ${tb}. Sparks live here — sometimes chemistry, sometimes quarrels. The trick is remembering friction is energy, and energy can be spent well.`,
+  tension: (pa,pb,ta,tb)=>`${pa}'s ${ta} sits opposite ${pb}'s ${tb}. You mirror each other in this area — what one lacks, the other carries. Opposites here attract, then teach.`,
+};
+const ELEMENT_LINE = {
+  "FireFire":"Two fires — passionate, fast, occasionally scorching. Remember to rest.",
+  "EarthEarth":"Two earths — steady, loyal, building something real together.",
+  "AirAir":"Two airs — endless conversation and shared curiosity keep this alive.",
+  "WaterWater":"Two waters — deep feeling flows between you almost without words.",
+  "FireAir":"Fire and air — air feeds fire; you energise and inspire each other.",
+  "FireEarth":"Fire and earth — spark meets steadiness; pace differences are the lesson.",
+  "FireWater":"Fire and water — steam! Intense chemistry that asks for gentleness.",
+  "EarthAir":"Earth and air — the dreamer and the builder; together, ideas become real.",
+  "EarthWater":"Earth and water — water nourishes earth; one of the most naturally caring pairs.",
+  "AirWater":"Air and water — mind meets heart; learning each other's language is the romance itself.",
+};
+function elementKey(e1,e2){ return [e1,e2].sort().join(""); }
+function renderUs(){
+  const a = store.profiles.find(x=>x.id===$("us-a").value);
+  const b = store.profiles.find(x=>x.id===$("us-b").value);
+  const el = $("us-reading");
+  if(!a||!b){ el.innerHTML='<p class="muted">Add two profiles to see your synastry.</p>'; return; }
+  if(a.id===b.id){ el.innerHTML='<p class="muted">Pick two different people ♡</p>'; return; }
+  const ba = bodies(makeHoroscope(a)), bb = bodies(makeHoroscope(b));
+  const hits=[];
+  CORE.forEach(k1=>{ CORE.forEach(k2=>{
+    const asp = findAspect(ba[k1].ChartPosition.Ecliptic.DecimalDegrees, bb[k2].ChartPosition.Ecliptic.DecimalDegrees);
+    if(asp) hits.push({k1,k2,asp});
+  });});
+  hits.sort((x,y)=>x.asp.orb-y.asp.orb);
+  // harmony score: ease/blend positive, friction/tension still count as connection
+  let score=50;
+  hits.forEach(h=>{
+    const w = (6-h.asp.orb);
+    if(h.asp.tone==="ease") score += w*1.2;
+    else if(h.asp.tone==="blend") score += w*0.9;
+    else score += w*0.35; // hard aspects still = strong connection
+  });
+  score = Math.max(35, Math.min(98, Math.round(score)));
+  const e1=SIGN_ELEMENT[ba.sun.Sign.label], e2=SIGN_ELEMENT[bb.sun.Sign.label];
+  let html = `<div class="score-ring"><div class="num">${score}</div><div class="lbl">connection score · ${hits.length} cross-chart aspects</div></div>`;
+  html += `<p><b>${esc(a.name)}</b> (${ba.sun.Sign.label} ☀) + <b>${esc(b.name)}</b> (${bb.sun.Sign.label} ☀): ${ELEMENT_LINE[elementKey(e1,e2)]}</p>`;
+  html += `<hr class="divider"><h3>Strongest threads between you</h3>`;
+  hits.slice(0,5).forEach(({k1,k2,asp})=>{
+    html += `<p><span class="aspect-tag">${esc(a.name)} ${PLANET_GLYPH[k1]} ${asp.key} ${esc(b.name)} ${PLANET_GLYPH[k2]} · orb ${asp.orb.toFixed(1)}°</span><br>` +
+      TONE_COUPLE[asp.tone](esc(a.name), esc(b.name), PLANET_THEME[k1], PLANET_THEME[k2]) + `</p>`;
+  });
+  if(!hits.length) html += `<p class="muted">No tight aspects — an unusual, self-contained pairing. You surprise each other.</p>`;
+  html += `<p class="muted">Synastry compares the exact positions in both birth charts — all computed privately on this device.</p>`;
+  el.innerHTML = html;
+  // enhanced couple reading (optional, anonymized patterns only — "Person A/B", no names)
+  if(hits.length && store.settings.worker){
+    const patterns = hits.slice(0,5).map(({k1,k2,asp}) =>
+      `Person A ${k1} ${asp.key} Person B ${k2} (orb ${asp.orb.toFixed(1)})`).join(". ");
+    const slot = document.createElement("div");
+    slot.innerHTML = `<p class="muted">✨ writing your enhanced reading…</p>`;
+    el.appendChild(slot);
+    fetchEnhanced(patterns, "synastry").then(r=>{
+      slot.innerHTML = r
+        ? `<hr class="divider"><p><span class="aspect-tag">✨ enhanced</span></p>` +
+          r.split(/\n\n+/).map(x=>`<p>${esc(x)}</p>`).join("")
+        : "";
+    });
+  }
+}
+$("us-a").onchange = renderUs; $("us-b").onchange = renderUs;
+
+/* ============ Nav & init ============ */
+document.querySelectorAll("nav button").forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    btn.classList.add("active");
+    $("view-"+btn.dataset.view).classList.add("active");
+    refreshAll();
+  };
+});
+function refreshAll(){
+  try{ if($("view-chart").classList.contains("active")) renderChart(); }catch(e){ console.error(e); }
+  try{ if($("view-today").classList.contains("active")) renderToday(); }catch(e){ console.error(e); }
+  try{ if($("view-us").classList.contains("active")) renderUs(); }catch(e){ console.error(e); }
+}
+$("btn-save-settings").onclick = ()=>{
+  const worker = $("s-worker").value.trim().replace(/\/$/,"");
+  const key = $("s-key").value.trim();
+  if(worker && !/^https:\/\//.test(worker)){ alert("Worker URL must start with https://"); return; }
+  store.settings = {worker, key};
+  $("settings-status").textContent = worker ? "saved ✨" : "saved — offline mode";
+  setTimeout(()=>{ $("settings-status").textContent=""; }, 2500);
+};
+(function loadSettings(){
+  const s = store.settings;
+  if(s.worker) $("s-worker").value = s.worker;
+  if(s.key) $("s-key").value = s.key;
+})();
+renderPlaces();
+renderProfiles();
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>
