@@ -1,4 +1,4 @@
-const CACHE = "patty-star-astro-v2";
+const CACHE = "patty-star-astro-v3";
 const ASSETS = ["./", "./index.html", "./libs.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
