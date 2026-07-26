@@ -1,11 +1,11 @@
 {
-  "name": "Patty Star Astro",
-  "short_name": "PattyStar",
-  "description": "A cozy, private birth chart & daily horoscope. Your data never leaves your device.",
+  "name": "Star Astro",
+  "short_name": "StarAstro",
+  "description": "Birth chart & daily horoscope — private, on your device.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f6ecd9",
-  "theme_color": "#f6ecd9",
+  "background_color": "#f5f3ef",
+  "theme_color": "#f5f3ef",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
