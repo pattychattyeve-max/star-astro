@@ -116,12 +116,13 @@
   .row{display:flex;gap:12px}.row>div{flex:1}
   button{
     font-family:inherit;background:transparent;border:1px solid #0a0a0a;padding:10px 24px;
-    font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#0a0a0a;cursor:pointer;margin-top:14px;
-    transition:background .15s,color .15s;
+    font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#0a0a0a;
+    cursor:pointer;margin-top:14px;
+    transition:color .2s,border-color .2s;
   }
-  button:hover{background:#0a0a0a;color:#f5f3ef}
+  button:active{opacity:.5}
   button.secondary{border-color:#0a0a0a30;color:#8a8a8a}
-  button.secondary:hover{background:transparent;color:#0a0a0a;border-color:#0a0a0a}
+  button.secondary:active{color:#0a0a0a;border-color:#0a0a0a}
 
   /* ===== Profiles ===== */
   .profile-chip{
