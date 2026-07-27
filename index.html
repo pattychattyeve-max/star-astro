@@ -286,53 +286,6 @@ const PLACES = [
 ];
 const {Origin, Horoscope, Chart} = window.AstroLibs;
 
-/* ============ Tiny lock screen ============ */
-async function hashCode(str){
-  try{
-    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("psa~"+str));
-    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
-  }catch(e){
-    let h=0; for(const c of "psa~"+str) h=(h*31 + c.charCodeAt(0))>>>0; return "f"+h;
-  }
-}
-function initLock(){
-  const saved = localStorage.getItem("psa_lock");
-  const lock = document.getElementById("lock");
-  const input = document.getElementById("lock-input");
-  const err = document.getElementById("lock-err");
-  if(sessionStorage.getItem("psa_unlocked")==="1") return;
-  lock.style.display = "flex";
-  if(!saved){
-    document.getElementById("lock-title").textContent = "set a passcode";
-    document.getElementById("lock-hint").textContent = "first time — choose a passcode (4+ characters)";
-  }
-  let firstEntry = null;
-  async function submit(){
-    const val = input.value;
-    if(val.length<4){ err.textContent="a little longer (4+)"; return; }
-    const h = await hashCode(val);
-    if(saved){
-      if(h===saved){ sessionStorage.setItem("psa_unlocked","1"); lock.style.display="none"; }
-      else { err.textContent="that's not it — try again"; input.value=""; }
-    } else if(firstEntry===null){
-      firstEntry = h;
-      input.value=""; err.textContent="";
-      document.getElementById("lock-hint").textContent = "once more to confirm";
-    } else if(h===firstEntry){
-      localStorage.setItem("psa_lock", h);
-      sessionStorage.setItem("psa_unlocked","1");
-      lock.style.display="none";
-    } else {
-      firstEntry=null; input.value="";
-      err.textContent="didn't match — start over";
-      document.getElementById("lock-hint").textContent = "choose a passcode (4+ characters)";
-    }
-  }
-  input.addEventListener("keydown", e=>{ if(e.key==="Enter") submit(); });
-  document.getElementById("lock-btn").addEventListener("click", submit);
-  setTimeout(()=>input.focus(), 100);
-}
-initLock();
 const CORE = ["sun","moon","mercury","venus","mars","jupiter","saturn","uranus","neptune","pluto"];
 const CHART_NAMES = {sun:"Sun",moon:"Moon",mercury:"Mercury",venus:"Venus",mars:"Mars",jupiter:"Jupiter",saturn:"Saturn",uranus:"Uranus",neptune:"Neptune",pluto:"Pluto",chiron:"Chiron",northnode:"NNode",lilith:"Lilith"};
 const PLANET_GLYPH = {sun:"☉",moon:"☽",mercury:"☿",venus:"♀",mars:"♂",jupiter:"♃",saturn:"♄",uranus:"♅",neptune:"♆",pluto:"♇"};
