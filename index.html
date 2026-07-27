@@ -405,11 +405,11 @@ const WHEEL_SETTINGS = {
 };
 function renderChart(){
   const p = store.profiles.find(x=>x.id===$("chart-profile").value);
-  $("#wheel").innerHTML=""; $("#placements").innerHTML=""; $("#big3").innerHTML="";
-  if(!p){ $("#wheel").innerHTML='<p class="muted" style="text-align:center;padding:60px 0">Select a profile to see their sky.</p>'; return; }
+  $("wheel").innerHTML=""; $("placements").innerHTML=""; $("big3").innerHTML="";
+  if(!p){ $("wheel").innerHTML='<p class="muted" style="text-align:center;padding:60px 0">Select a profile to see their sky.</p>'; return; }
   const h = makeHoroscope(p);
   const bs = bodies(h);
-  $("#big3").innerHTML = `
+  $("big3").innerHTML = `
     <div><div class="k">☀ Sun</div><div class="v">${bs.sun.Sign.label}</div></div>
     <div class="big3-divider"></div>
     <div><div class="k">☽ Moon</div><div class="v">${bs.moon.Sign.label}</div></div>
@@ -428,7 +428,7 @@ function renderChart(){
   });
   rows += `<tr><td>↑ Ascendant</td><td>${h.Ascendant.Sign.label}</td><td>1</td><td></td></tr>`;
   rows += `<tr><td>MC Midheaven</td><td>${h.Midheaven.Sign.label}</td><td>10</td><td></td></tr>`;
-  $("#placements").innerHTML = rows;
+  $("placements").innerHTML = rows;
 }
 $("chart-profile").onchange = renderChart;
 
