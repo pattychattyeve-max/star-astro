@@ -188,9 +188,9 @@
   <h2 style="margin-top:40px">Enhanced readings</h2>
   <p class="muted" style="font-size:.78rem;margin-bottom:14px">Connect your Cloudflare Worker for AI-written readings. Only anonymized aspect patterns — no names, dates, or places.</p>
   <label>Worker URL</label>
-  <input id="s-worker" placeholder="https://patty-star.yourname.workers.dev">
+  <input id="s-worker" placeholder="https://patty-star.patty-chattyeve.workers.dev/">
   <label>Passphrase</label>
-  <input id="s-key" placeholder="the PSA_SECRET you set in the worker">
+  <input id="s-key" placeholder="your PSA_SECRET passphrase">
   <button id="btn-save-settings">Save</button>
   <span id="settings-status"></span>
 </section>
@@ -592,6 +592,7 @@ $("btn-save-settings").onclick = ()=>{
 (function loadSettings(){
   const s = store.settings;
   if(s.worker) $("s-worker").value = s.worker;
+  else $("s-worker").value = "https://patty-star.patty-chattyeve.workers.dev/";
   if(s.key) $("s-key").value = s.key;
 })();
 renderPlaces();
